@@ -31,15 +31,15 @@ module.exports = {
 
 	"pingEnable": true,
 	"pingInterval": 30,
-	"pingAnonceToMasterservers": false,
+	"pingAnonceToMasterservers": true,
 
 	"authAllowAnyone": false,
 
 	"authByActiveTokenEnable": false,
 
 	"localAccounts": {
-		"masterserver": { "password": "W8o9YQ7ED5rtsowPlwuoAmJcCVjcqc8B", "allowBindCustomResource": true, "admin": true },
-		"dedicated": { "password": "iTDki2ww7XaqtmqYl3maju6rxWMrVrHR", "allowBindCustomResource": true, "admin": false }
+		"masterserver": { "password": "W8o9YQ7ED5rtsowPlwuoAmJcCVjcqc8B", "allowBindCustomResource": true, "admin": true, "allowAuthorizationFromListenersId": [0] },
+		"dedicated": { "password": "iTDki2ww7XaqtmqYl3maju6rxWMrVrHR", "allowBindCustomResource": true, "admin": false, "allowAuthorizationFromListenersId": [0] }
 	},
 	"componentsInfo": {
 		"wfc.warface": "yrb8fFNeJMdCFkYV0qUi5jWclFedJVJp",
@@ -47,6 +47,6 @@ module.exports = {
 	},
 	"api": {
 		"host": "127.0.0.1",
-		"port": 8080
+		"port": 8081
 	}
 };

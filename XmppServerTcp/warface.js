@@ -52,7 +52,7 @@ exports.module = function (connection, stanza) {
 		case 'result':
 			switch (stanza.name) {
 				case "iq":
-					switch (stanza.xmlns) {
+					switch (stanza.attrs.xmlns) {
 						case "jabber:client":
 							if (global.config.pingEnable == true && connection.pingTime != -1 && stanza.attrs.id != null && stanza.attrs.id == "ping" + connection.pingId) {
 								var pingResult = new Date().getTime() - connection.pingTime;
@@ -62,7 +62,7 @@ exports.module = function (connection, stanza) {
 									for (var keyConnection in global.connectionsOnline) {
 										var curConnection = global.connectionsOnline[keyConnection];
 										if (curConnection.isOnline == true && curConnection.username == "masterserver") {
-											curConnection.send("<iq to='" + keyConnection + "' type='get' from='" + keyConnection.host + "' xmlns='jabber:client'><query xmlns='urn:cryonline:k01'><user_ping jid='" + connection.jid + "' ping='" + pingResult + "'/></query></iq>");
+											curConnection.send("<iq to='" + keyConnection + "' type='get' from='" + curConnection.host + "' xmlns='jabber:client'><query xmlns='urn:cryonline:k01'><user_ping jid='" + connection.jid + "' ping='" + pingResult + "'/></query></iq>");
 										}
 									}
 								}

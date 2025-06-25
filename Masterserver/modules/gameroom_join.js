@@ -151,6 +151,7 @@ exports.module = function (stanza) {
 		class_id: setClassId,
 		observer: 0,
 		skill: "1.000",
+		ping: 0,
 		missions_unlocked: profileObject.missions_unlocked.slice(0),
 		classes_unlocked: profileObject.classes_unlocked.slice(0),
 		mission_access_tokens: setMissionAccessTokens
@@ -161,11 +162,11 @@ exports.module = function (stanza) {
 	profileObject.room_object = roomObject;
 	profileObject.room_player_object = playerObject;
 
-    var roomLeftPlayerIndex = roomObject.core.room_left_players.findIndex(function (x) { return x.profile_id == profileObject._id });
+	var roomLeftPlayerIndex = roomObject.core.room_left_players.findIndex(function (x) { return x.profile_id == profileObject._id });
 
-    if (roomLeftPlayerIndex != -1) {
-        roomObject.core.room_left_players.splice(roomLeftPlayerIndex, 1);
-    }
+	if (roomLeftPlayerIndex != -1) {
+		roomObject.core.room_left_players.splice(roomLeftPlayerIndex, 1);
+	}
 
 	roomObject.core.can_start = scriptGameroom.getCanStart(roomObject);
 

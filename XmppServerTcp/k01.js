@@ -93,7 +93,7 @@ exports.module = function (connection, stanza) {
 		case 'result':
 			switch (stanza.name) {
 				case "iq":
-					switch (stanza.xmlns) {
+					switch (stanza.attrs.xmlns) {
 						case "jabber:client":
 
 							break

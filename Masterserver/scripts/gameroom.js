@@ -463,6 +463,19 @@ exports.getClientLtx = function (roomObject, isGetAll) {
         elementGameRoom.children.push(elementTeamColors);//For compatibility with older versions of the game   
     }
 
+    //Pings
+    if (isGetAll || roomObject.pings.revision != roomObject.pings.synchronized_revision) {
+
+        var elementPings = elementGameRoom.c("pings", { revision: roomObject.pings.revision });
+
+        for (var i = 0; i < roomObject.core.players.length; i++) {
+
+            var roomPlayer = roomObject.core.players[i];
+
+            elementPings.c("ping", { player: roomPlayer.profile_id, ping: roomPlayer.ping });
+        }
+    }
+
     //RoomMaster
     if (isGetAll || roomObject.room_master.revision != roomObject.room_master.synchronized_revision) {
         elementGameRoom.c("room_master", { master: roomObject.room_master.master, revision: roomObject.room_master.revision });

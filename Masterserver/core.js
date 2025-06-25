@@ -75,7 +75,6 @@ var extend_item = require('./modules/extend_item')
 var repair_item = require('./modules/repair_item')
 var repair_multiple_items = require('./modules/repair_multiple_items')
 var ui_user_choice = require('./modules/ui_user_choice')
-
 var class_presence = require('./modules/class_presence');
 var send_anticheat_report = require('./modules/send_anticheat_report');
 var punish_mode = require('./modules/punish_mode');
@@ -86,6 +85,7 @@ var add_friend_response = require('./modules/add_friend_response');
 var clan_invite = require('./modules/clan_invite');
 var clan_invite_response = require('./modules/clan_invite_response');
 var gameroom_setcustomparams = require('./modules/gameroom_setcustomparams');
+var user_ping = require('./modules/user_ping');
 
 exports.module = function (stanza) {
 	//console.log("[Masterserver]:Stanza\n" + stanza + "\n");
@@ -363,6 +363,9 @@ exports.module = function (stanza) {
 															break;
 														case "gameroom_setcustomparams"://0.2ms
 															gameroom_setcustomparams.module(stanza);
+															break;
+														case "user_ping"://0.2ms
+															user_ping.module(stanza);
 															break;
 													}
 													console.timeEnd(stanza.children[0].children[0].name);

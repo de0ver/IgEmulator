@@ -143,6 +143,7 @@ exports.syncGamerooms = function () {
             global.xmppClient.request("k01." + global.config.masterserver.domain, elementGameroomSync);
 
             roomObject.core.synchronized_revision = roomObject.core.revision;
+            roomObject.pings.synchronized_revision = roomObject.pings.revision;
             roomObject.room_master.synchronized_revision = roomObject.room_master.revision;
             roomObject.auto_start.synchronized_revision = roomObject.auto_start.revision;
             roomObject.session.synchronized_revision = roomObject.session.revision;

@@ -15,7 +15,7 @@ function mechanismPlainAuth(connection, stanza) {
 		var authDataArr = authData.split("\x00");
 		var authLogin = authDataArr[1];
 		//var authPassword = authDataArr[2];
-		
+
 		var authPassword;
 		var authVersion;
 
@@ -62,38 +62,43 @@ function mechanismPlainAuth(connection, stanza) {
 			}
 
 			if (accountData != null && (accountData.password == authPassword || accountData.password + "{:B:}trunk" == authPassword)) {
-				if (accountData.error == null) {
-					connection.username = authLogin;
-					connection.password = authPassword;
-					connection.version = authVersion;
-					if (accountData.allowBindCustomResource == true) {
-						connection.isAllowBindCustomResource = true;
-					}
-					if (accountData.admin == true) {
-						connection.isAdmin = true;
-					}
-					connection.isAuthorized = true;
-					connection.jid = connection.username + "@" + connection.host;//???
+				if (!accountData.allowAuthorizationFromListenersId || accountData.allowAuthorizationFromListenersId.indexOf(connection.listenerId) != -1) {
+					if (accountData.error == null) {
+						connection.username = authLogin;
+						connection.password = authPassword;
+						connection.version = authVersion;
+						if (accountData.allowBindCustomResource == true) {
+							connection.isAllowBindCustomResource = true;
+						}
+						if (accountData.admin == true) {
+							connection.isAdmin = true;
+						}
+						connection.isAuthorized = true;
+						connection.jid = connection.username + "@" + connection.host;//???
 
-					//Генерация активного токена, если авторизация была произведена не по активному токену
-					if (isUseActiveToken == true) {
-						connection.byActiveToken = true;
-						connection.active_token = " ";
+						//Генерация активного токена, если авторизация была произведена не по активному токену
+						if (isUseActiveToken == true) {
+							connection.byActiveToken = true;
+							connection.active_token = " ";
+						} else {
+							connection.byActiveToken = false;
+							var aTokenL = authLogin + "_" + new Date().getTime();
+							connection.active_token = "$WF_" + aTokenL + "_" + crypto.createHash('md5').update(aTokenL + "_" + authPassword).digest("hex");
+						}
+						connection.send("<success xmlns='urn:ietf:params:xml:ns:xmpp-sasl'/>");
 					} else {
-						connection.byActiveToken = false;
-						var aTokenL = authLogin + "_" + new Date().getTime();
-						connection.active_token = "$WF_" + aTokenL + "_" + crypto.createHash('md5').update(aTokenL + "_" + authPassword).digest("hex");
+						console.log("[" + connection.listenerType + "][" + connection.listenerId + "][" + connection.ip + ":" + connection.port + "][" + connection.jid + "][Error]:Account banned");
+						connection.sendEnd("<failure xmlns='urn:ietf:params:xml:ns:xmpp-sasl'><warface-failure>&lt;error&gt;&lt;code&gt;" + accountData.error.code + "&lt;/code&gt;&lt;message&gt;" + accountData.error.message + "&lt;/message&gt;&lt;unbantime&gt;" + accountData.error.unbantime + "&lt;/unbantime&gt;&lt;/error&gt;</warface-failure></failure>");
 					}
-					connection.send("<success xmlns='urn:ietf:params:xml:ns:xmpp-sasl'/>");
-				} else {
-					console.log("[" + connection.listenerType + "][" + connection.listenerId + "][" + connection.ip + ":" + connection.port + "][" + connection.jid + "][Error]:Account banned");
-					connection.sendEnd("<failure xmlns='urn:ietf:params:xml:ns:xmpp-sasl'><warface-failure>&lt;error&gt;&lt;code&gt;" + accountData.error.code + "&lt;/code&gt;&lt;message&gt;" + accountData.error.message + "&lt;/message&gt;&lt;unbantime&gt;" + accountData.error.unbantime + "&lt;/unbantime&gt;&lt;/error&gt;</warface-failure></failure>");
-				}
 
-				//Очистка таймера, удаление токена
-				if (isUseToken == true) {
-					clearTimeout(accountData.timer);
-					delete global.clientTokens[authLogin];
+					//Очистка таймера, удаление токена
+					if (isUseToken == true) {
+						clearTimeout(accountData.timer);
+						delete global.clientTokens[authLogin];
+					}
+				} else {
+					console.log("[" + connection.listenerType + "][" + connection.listenerId + "][" + connection.ip + ":" + connection.port + "][" + connection.jid + "][Error]:Authorization from listener '" + connection.listenerId + "' not allowed for account '" + authLogin + "'");
+					connection.sendEnd("<failure xmlns='urn:ietf:params:xml:ns:xmpp-sasl'><not-authorized/></failure>");
 				}
 			} else {
 				console.log("[" + connection.listenerType + "][" + connection.listenerId + "][" + connection.ip + ":" + connection.port + "][" + connection.jid + "][Error]:Incorrect account or password");
@@ -277,7 +282,7 @@ exports.create = function (listenerId, listenerHost, listenerPort, listenerDomai
 					//Если пользователь отключается то отправлять инфу в k01 если он есть
 					if (connection.isOnline == true && connection.username != "masterserver") {
 						for (var i = 0; i < global.masterserversArr.length; i++) {
-							
+
 							if (connection.version && connection.version != global.masterserversArr[i].info.version) {
 								continue;
 							}

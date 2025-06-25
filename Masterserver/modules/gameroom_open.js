@@ -192,6 +192,10 @@ exports.module = function (stanza, isAutomaticCreation, manualRoomType, manualMi
             revision: 1,
             synchronized_revision: 1
         },
+        pings: {
+            revision: 1,
+            synchronized_revision: 1
+        },
         room_master: {
             master: (setRoomType == 1 || setRoomType == 2 || setRoomType == 4) ? profileObject._id : 0,
             revision: 1,
@@ -300,6 +304,7 @@ exports.module = function (stanza, isAutomaticCreation, manualRoomType, manualMi
             class_id: setClassId,
             observer: 0,
             skill: "1.000",
+            ping: 0,
             missions_unlocked: profileObject.missions_unlocked.slice(0),
             classes_unlocked: profileObject.classes_unlocked.slice(0),
             mission_access_tokens: setMissionAccessTokens
