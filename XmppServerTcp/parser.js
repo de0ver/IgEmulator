@@ -9,6 +9,7 @@ module.exports = function () {
     var parserElementType = 0;
     var parserElementAttributeName = "";
     var parserElementAttributeValue = "";
+    var parserQuerySize = 0;
 
     this.onStreamStart;
     this.onStanza;
@@ -42,6 +43,7 @@ module.exports = function () {
 			if (this.element.parent) {
 				this.element = this.element.parent
 			} else {
+                parserQuerySize = 0;
 				this.onStanza(this.element) // FIXME deprecate
 				delete this.element
 			}
@@ -62,6 +64,13 @@ module.exports = function () {
         data = data.toString();
 
         for (var i = 0; i < data.length; i++) {
+
+            if(parserQuerySize >= 65536){
+                this.onError(2);
+                return;
+            }
+
+            parserQuerySize++;
 
             var parserChar = data[i];
 
