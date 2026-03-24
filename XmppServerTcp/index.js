@@ -1,4 +1,19 @@
-global.config = require('./config')
+
+global.startupParams = {};
+for (argKey in process.argv) {
+    var argData = process.argv[argKey].split("=")
+    if (argData.length == 2) {
+        global.startupParams[argData[0]] = argData[1];
+    }
+}
+
+var configPath = "./config.js";
+
+if (global.startupParams.config) {
+    configPath = global.startupParams.config;
+}
+
+global.config = require(configPath)
 
 global.connectionsOnline = {};
 
@@ -8,14 +23,14 @@ var api = require('./api');
 
 api.create();
 
-for(var i=0;i<global.config.listenersComponent.length;i++){
-	var listener = global.config.listenersComponent[i];
-	listenerComponents.create(i, listener.host, listener.port, listener.domain);
+for (var i = 0; i < global.config.listenersComponent.length; i++) {
+    var listener = global.config.listenersComponent[i];
+    listenerComponents.create(i, listener.host, listener.port, listener.domain);
 }
 
-for(var i=0;i<global.config.listenersClient.length;i++){
-	var listener = global.config.listenersClient[i];
-	listenerClients.create(i, listener.host, listener.port, listener.domain, listener.tlsUse, listener.tlsRequire, listener.tlsKey, listener.tlsCert, listener.socketSpeedLimit);
+for (var i = 0; i < global.config.listenersClient.length; i++) {
+    var listener = global.config.listenersClient[i];
+    listenerClients.create(i, listener.host, listener.port, listener.domain, listener.tlsUse, listener.tlsRequire, listener.tlsKey, listener.tlsCert, listener.socketSpeedLimit);
 }
 
 /*

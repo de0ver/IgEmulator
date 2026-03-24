@@ -9,11 +9,16 @@ for (argKey in process.argv) {
 	}
 }
 
+var mongodbUrl = "mongodb://127.0.0.1:27017/";
+
+if (global.startupParams.mongodb) {
+	mongodbUrl = global.startupParams.mongodb;
+}
 
 function loadDb() {
 	global.db = {};
 	console.log("[MongoDb]:Connecting...");
-	mongoClient.connect("mongodb://127.0.0.1:27017/", { useNewUrlParser: true, useUnifiedTopology: true }, function (err, dbClient) {
+	mongoClient.connect(mongodbUrl, { useNewUrlParser: true, useUnifiedTopology: true }, function (err, dbClient) {
 		if (dbClient != null) {
 			console.log("[MongoDb]:Connected");
 			global.db.warface = {};

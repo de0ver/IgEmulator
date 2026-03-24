@@ -1,7 +1,23 @@
 const Component = require('node-xmpp-component')
 const ltx = require('ltx')
 const MongoClient = require("mongodb").MongoClient;
-const config = require('./config.json')
+
+global.startupParams = {};
+for (argKey in process.argv) {
+	var argData = process.argv[argKey].split("=")
+	if (argData.length == 2) {
+		global.startupParams[argData[0]] = argData[1];
+	}
+}
+
+var configPath = "./config.json";
+
+if (global.startupParams.config) {
+	configPath = global.startupParams.config;
+}
+
+const config = require(configPath);
+
 //Mongodb
 var collection_profiles = null;
 
@@ -13,9 +29,9 @@ var presence_max_users = 1000;
 console.log("[MongoDb]:Connecting...");
 function connect_to_mongodb() {
 
-	var mongoConnectionAttrs = { useNewUrlParser: true, useUnifiedTopology: true};
+	var mongoConnectionAttrs = { useNewUrlParser: true, useUnifiedTopology: true };
 
-	if(require("mongodb/lib/connection_string.js").OPTIONS.reconnectTries){
+	if (require("mongodb/lib/connection_string.js").OPTIONS.reconnectTries) {
 		mongoConnectionAttrs.reconnectTries = Number.MAX_VALUE;
 	}
 

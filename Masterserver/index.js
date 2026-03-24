@@ -4,13 +4,6 @@ var ltx = require("ltx");
 
 var xmppCore = require("./core.js");
 
-global.config = require('./config.json')
-
-var scriptResources = require('./scripts/resources.js');
-var scriptXmpp = require('./scripts/xmpp.js')
-var scriptCache = require('./scripts/cache.js');
-var scriptTimers = require('./scripts/timers.js');
-
 global.startupParams = {};
 for (argKey in process.argv) {
 	var argData = process.argv[argKey].split("=")
@@ -18,6 +11,19 @@ for (argKey in process.argv) {
 		global.startupParams[argData[0]] = argData[1];
 	}
 }
+
+var configPath = "./config.json";
+
+if (global.startupParams.config) {
+	configPath = global.startupParams.config;
+}
+
+global.config = require(configPath);
+
+var scriptResources = require('./scripts/resources.js');
+var scriptXmpp = require('./scripts/xmpp.js')
+var scriptCache = require('./scripts/cache.js');
+var scriptTimers = require('./scripts/timers.js');
 
 function initGlobalVars() {
 	global.users = { jid: {}, _id: {} };

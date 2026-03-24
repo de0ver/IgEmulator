@@ -1,7 +1,21 @@
 var mongoClient = require("mongodb").MongoClient;
 var xmppNodeComponent = require('node-xmpp-component');
 
-var config = require('./config.json');
+global.startupParams = {};
+for (argKey in process.argv) {
+	var argData = process.argv[argKey].split("=")
+	if (argData.length == 2) {
+		global.startupParams[argData[0]] = argData[1];
+	}
+}
+
+var configPath = "./config.json";
+
+if (global.startupParams.config) {
+	configPath = global.startupParams.config;
+}
+
+var config = require(configPath);
 
 var db;
 
@@ -9,9 +23,9 @@ function loadDb() {
 	db = {};
 	console.log("[MongoDb]:Connecting...");
 
-	var mongoConnectionAttrs = { useNewUrlParser: true, useUnifiedTopology: true};
+	var mongoConnectionAttrs = { useNewUrlParser: true, useUnifiedTopology: true };
 
-	if(require("mongodb/lib/connection_string.js").OPTIONS.reconnectTries){
+	if (require("mongodb/lib/connection_string.js").OPTIONS.reconnectTries) {
 		mongoConnectionAttrs.reconnectTries = Number.MAX_VALUE;
 	}
 
