@@ -26,7 +26,7 @@ exports.module = function (stanza) {
     var max_session_score = Number(stanza.children[0].children[0].attrs.max_session_score);
 
     var elementSetRewardsInfo = stanza.children[0].children[0];
-    
+
     var roomObject = global.gamerooms[global.gamerooms.findIndex(function (x) { return x.dedicatedServerJid == stanza.attrs.from })];
 
     if (!roomObject) {
@@ -370,14 +370,14 @@ exports.module = function (stanza) {
 
             var profileOldMoney = profileObject.game_money;
             var profileOldExperience = profileObject.experience;
-            var profileOldSponsorPoints = 0;
+            //var profileOldSponsorPoints = 0;
             var profileOldCrownMoney = profileObject.crown_money;
 
             scriptProfile.giveGameItem(profileObject, [{ name: "game_money_item_01", durabilityPoints: 0, expirationTime: "", quantity: profileResultMoney, offerId: 0 }, { name: "exp_item_01", durabilityPoints: 0, expirationTime: "", quantity: profileResultExperience, offerId: 0 }, { name: "crown_money_item_01", durabilityPoints: 0, expirationTime: "", quantity: profileResultCrownMoney, offerId: 0 }], false, null, null);
 
             var profileResultValidatedMoney = profileObject.game_money - profileOldMoney;
             var profileResultValidatedExperience = profileObject.experience - profileOldExperience;
-            var profileResultValidatedSponsorPoints = 0 - profileOldSponsorPoints;
+            var profileResultValidatedSponsorPoints = scriptProfile.giveSponsorsPoints(profileObject, profileResultSponsorPoints);
             var profileResultValidatedCrownMoney = profileObject.crown_money - profileOldCrownMoney;
 
             if (profileObject.clan_name) {

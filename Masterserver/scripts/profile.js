@@ -853,7 +853,8 @@ exports.save = function (profileObject, callBack) {
 			"wpn_usage": profileObject.wpn_usage,
 			"login_bonus": profileObject.login_bonus,
 			"win_limits": profileObject.win_limits,
-			"pvp_rating_points": profileObject.pvp_rating_points
+			"pvp_rating_points": profileObject.pvp_rating_points,
+			"sponsors": profileObject.sponsors
 			//"room_object": null,
 			//"room_player_object": null,
 			//"region_id": region_id
@@ -1035,4 +1036,146 @@ exports.getExpiredItems = function (profileObject, expiresArr) {
 		}
 
 	}
+}
+
+var getSponsorsResourcesCategoryStageIdByPoints = function (resourcesSponsorsCategoryObject, points) {
+
+	for (var i = 0; i < resourcesSponsorsCategoryObject.stages.length; i++) {
+
+		if (resourcesSponsorsCategoryObject.stages[i] > points) {
+			return i;
+		}
+	}
+
+	return resourcesSponsorsCategoryObject.stages.length;
+}
+
+var updateSponsorsProfileCategoryNextUnlockItem = function (profileObject, profileSponsorsCategoryObject, resourcesSponsorsCategoryObject, stageId) {
+
+	var candidatesItems = [];
+	var candidatesWeights = 0;
+
+	for (var i = 0; i < resourcesSponsorsCategoryObject.items.length; i++) {
+
+		var resourcesItem = resourcesSponsorsCategoryObject.items[i];
+
+		if (profileObject.sponsors.unlocked.indexOf(resourcesItem.name) == -1) {
+			candidatesItems.push(resourcesItem);
+			candidatesWeights += resourcesItem.weights[stageId];
+		}
+	}
+
+	if (candidatesItems.length < 1) {
+
+		profileSponsorsCategoryObject.next_unlock_item = "";
+		profileSponsorsCategoryObject.next_unlock_type = 0;
+
+		exports.updateAchievementsAmmount(profileObject, [{ id: 137, command: "inc", amount: 1 }, { id: 138, command: "inc", amount: 1 }], function (res) {
+		});
+		return;
+	}
+
+	var randomWeight = Math.floor(Math.random() * candidatesWeights);
+
+	for (var i = 0; i < candidatesItems.length; i++) {
+
+		randomWeight -= candidatesItems[i].weights[stageId];
+
+		if (randomWeight <= 0) {
+
+			profileSponsorsCategoryObject.next_unlock_item = candidatesItems[i].name;
+			profileSponsorsCategoryObject.next_unlock_type = candidatesItems[i].type;
+			return;
+		}
+	}
+
+	profileSponsorsCategoryObject.next_unlock_item = "";
+	profileSponsorsCategoryObject.next_unlock_type = 0;
+}
+
+exports.updateSponsorsNextUnlockItem = function (profileObject) {
+
+	for (var i = 0; i < 3; i++) {
+
+		var profileSponsorsCategoryObject = profileObject.sponsors.categories[i];
+
+		if (profileSponsorsCategoryObject.next_unlock_item) {
+			continue;
+		}
+
+		var resourcesSponsorsCategoryObject = global.resources.sponsors[i];
+
+		var maxPoints = resourcesSponsorsCategoryObject.stages[resourcesSponsorsCategoryObject.stages.length - 1];
+
+		if (profileSponsorsCategoryObject.sponsor_points == maxPoints) {
+			continue;
+		}
+
+		updateSponsorsProfileCategoryNextUnlockItem(profileObject, profileSponsorsCategoryObject, resourcesSponsorsCategoryObject, (getSponsorsResourcesCategoryStageIdByPoints(resourcesSponsorsCategoryObject, profileSponsorsCategoryObject.sponsor_points) + 1));
+	}
+
+}
+
+exports.giveSponsorsPoints = function (profileObject, points) {
+
+	var categoryId = 0;
+
+	if (profileObject.persistent_settings.sponsor && (profileObject.persistent_settings.sponsor.id == "0" || profileObject.persistent_settings.sponsor.id == "1" || profileObject.persistent_settings.sponsor.id == "2")) {
+		categoryId = Number(profileObject.persistent_settings.sponsor.id);
+	}
+
+	var profileSponsorsCategoryObject = profileObject.sponsors.categories[categoryId];
+
+	if (!profileSponsorsCategoryObject.next_unlock_item) {
+		return 0;
+	}
+
+	var resourcesSponsorsCategoryObject = global.resources.sponsors[categoryId];
+
+	var maxPoints = resourcesSponsorsCategoryObject.stages[resourcesSponsorsCategoryObject.stages.length - 1];
+
+	var oldPoints = profileSponsorsCategoryObject.sponsor_points;
+	var newPoints = oldPoints + points;
+
+	if (newPoints > maxPoints) {
+		newPoints = maxPoints;
+	}
+
+	profileSponsorsCategoryObject.sponsor_points = newPoints;
+
+	var oldStageId = getSponsorsResourcesCategoryStageIdByPoints(resourcesSponsorsCategoryObject, oldPoints);
+	var newStageId = getSponsorsResourcesCategoryStageIdByPoints(resourcesSponsorsCategoryObject, newPoints);
+
+	var unlockedItemsElement = new ltxElement("unlocked_items");
+
+	//console.log("[Profile][GiveSponsorPoints]:State maxPoints:" + maxPoints + " oldPoints: " + oldPoints + " newPoints:" + newPoints + " oldStageId:" + oldStageId + " newStageId:" + newStageId);
+
+	for (var s = oldStageId; s < newStageId; s++) {
+
+		//console.log("[Profile][GiveSponsorPoints]:Stage '" + s + "' done, unlock '" + profileSponsorsCategoryObject.next_unlock_item + "'");
+
+		profileObject.sponsors.unlocked.push(profileSponsorsCategoryObject.next_unlock_item);
+
+		if (profileSponsorsCategoryObject.next_unlock_type == 1) {
+
+			var profileItemObject = { id: profileObject.items[profileObject.items.length - 1].id + 1, name: profileSponsorsCategoryObject.next_unlock_item, attached_to: '0', config: '', slot: '21647380', equipped: '29' };
+			profileObject.items.push(profileItemObject);
+
+			unlockedItemsElement.c("item", { id: profileItemObject.id, name: profileItemObject.name, attached_to: '0', config: '', slot: '21647380', equipped: '29', profile_item_id: profileItemObject.id });
+		} else {
+			unlockedItemsElement.c("item", { name: profileSponsorsCategoryObject.next_unlock_item, profile_item_id: "0" });
+		}
+
+		updateSponsorsProfileCategoryNextUnlockItem(profileObject, profileSponsorsCategoryObject, resourcesSponsorsCategoryObject, s + 1);
+
+		//console.log("[Profile][GiveSponsorPoints]:NextItem " + profileSponsorsCategoryObject.next_unlock_item);
+	}
+
+	var incPoints = newPoints - oldPoints;
+
+	var sponsorInfoUpdatedElement = new ltxElement("sponsor_info_updated", { sponsor_id: categoryId, sponsor_points: incPoints, total_sponsor_points: profileSponsorsCategoryObject.sponsor_points, next_unlock_item: profileSponsorsCategoryObject.next_unlock_item });
+	sponsorInfoUpdatedElement.children.push(unlockedItemsElement);
+	global.xmppClient.request(profileObject.username + "@" + global.config.masterserver.domain + "/GameClient", sponsorInfoUpdatedElement);
+
+	return incPoints;
 }

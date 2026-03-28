@@ -423,6 +423,27 @@ function hadlerCommandKing(stanza, profileObject) {
     CommandResult(stanza, "[Выполнена]");
 }
 
+function hadlerCommandGiveSponsorPointsTest(stanza, profileObject) {
+
+    var args = stanza.children[0].children[0].attrs.args.split(" ");
+
+    if (args.length != 1) {
+        CommandResult(stanza, "[Не выполнена] Недостаточно аргументов");
+        return;
+    }
+
+    var argPoints = Number(args[0]);
+
+    if (Number.isNaN(argPoints) || !Number.isSafeInteger(argPoints) || argPoints < 0 || argPoints > 4294967295) {
+        CommandResult(stanza, "[Не выполнена] Значение поинтов должно быть целочисленым и больше нуля");
+        return;
+    }
+
+    var giveResult = scriptProfile.giveSponsorsPoints(profileObject, argPoints);
+
+    CommandResult(stanza, "[Выполнена] Выдано " + giveResult + " поинтов");
+}
+
 exports.module = function (stanza, profileObject) {
 
     var profileObject = global.users.jid[stanza.attrs.from];
@@ -471,6 +492,8 @@ exports.module = function (stanza, profileObject) {
             break;
         case "king":
             hadlerCommandKing(stanza, profileObject);
+        case "tgp":
+            hadlerCommandGiveSponsorPointsTest(stanza, profileObject);
         default:
             CommandResult(stanza, "Комманда не найдена или недоступна для вас, напишите 'help' что-бы узнать доступные комманды");
             break;

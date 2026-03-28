@@ -148,6 +148,7 @@ exports.module = function (stanza) {
 			"login_bonus": resultProfile.login_bonus,
 			"win_limits": resultProfile.win_limits,
 			"pvp_rating_points": resultProfile.pvp_rating_points,
+			"sponsors": resultProfile.sponsors,
 			"room_object": null,
 			"room_player_object": null,
 			"region_id": region_id
@@ -175,17 +176,31 @@ exports.module = function (stanza) {
 			for (var i = 0; i < profileObject.expired_items.length; i++) {
 				elementCharacter.c("expired_item", profileObject.expired_items[i]);
 			}
-		}
 
-		//Открытые предеметы
-		//elementCharacter.c("unlocked_item", {id:"12345"});
+			scriptProfile.updateSponsorsNextUnlockItem(profileObject);
 
-		//TODO
-		if (queryName == "join_channel" || queryName == "create_profile") {
+			for (var c = 0; c < global.resources.sponsors.length; c++) {
+
+				var sponsorsCategory = global.resources.sponsors[c];
+
+				for (var i = 0; i < sponsorsCategory.items.length; i++) {
+
+					var sponsorsItem = sponsorsCategory.items[i];
+
+					if (profileObject.sponsors.unlocked.indexOf(sponsorsItem.name) == -1) {
+						continue;
+					}
+
+					elementCharacter.c("unlocked_item", { id: sponsorsItem.id });
+				}
+			}
+
 			var elementSponsorInfo = elementCharacter.c("sponsor_info");
-			elementSponsorInfo.c("sponsor", { sponsor_id: "0", sponsor_points: "676969", next_unlock_item: "" });
-			elementSponsorInfo.c("sponsor", { sponsor_id: "1", sponsor_points: "578006", next_unlock_item: "" });
-			elementSponsorInfo.c("sponsor", { sponsor_id: "2", sponsor_points: "299845", next_unlock_item: "" });
+
+			for (var i = 0; i < resultProfile.sponsors.categories.length; i++) {
+				var categoryObject = resultProfile.sponsors.categories[i];
+				elementSponsorInfo.c("sponsor", { sponsor_id: i, sponsor_points: categoryObject.sponsor_points, next_unlock_item: categoryObject.next_unlock_item });
+			}
 		}
 
 		var elementChatChannels = elementCharacter.c("chat_channels");
@@ -311,7 +326,7 @@ exports.module = function (stanza) {
 					for (var i = 0; i < arrElementAddFriendRequest.length; i++) {
 						global.xmppClient.request(stanza.attrs.from, arrElementAddFriendRequest[i][0], arrElementAddFriendRequest[i][1])
 					}
-					
+
 					console.timeEnd("join_channel_full");
 				});
 

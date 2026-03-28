@@ -141,10 +141,10 @@ exports.module = function (stanza) {
 		"gender": "male",
 		"height": 1,
 		"fatness": 0,
-		"game_money": 10000000,
-		"cry_money": 10000000,
-		"crown_money": 10000000,
-		"experience": 0,
+		"game_money": global.config.create_profile.game_money,
+		"cry_money": global.config.create_profile.cry_money,
+		"crown_money": global.config.create_profile.crown_money,
+		"experience": global.config.create_profile.experience,
 		"current_class": 0,
 		"banner_badge": 4294967295,
 		"banner_mark": 4294967295,
@@ -225,6 +225,15 @@ exports.module = function (stanza) {
 		"win_limits": {},
 
 		"pvp_rating_points": 0,
+
+		"sponsors": {
+			"categories": [
+				{ sponsor_points: 0, next_unlock_item: "", next_unlock_type: 0 },
+				{ sponsor_points: 0, next_unlock_item: "", next_unlock_type: 0 },
+				{ sponsor_points: 0, next_unlock_item: "", next_unlock_type: 0 },
+			],
+			"unlocked": []
+		},
 
 		"clan_points": 0,
 		"clan_role": 0,

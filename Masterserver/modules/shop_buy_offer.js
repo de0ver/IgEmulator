@@ -42,6 +42,30 @@ exports.module = function (stanza) {
             continue;
         }
 
+        var isSponsorItem = false;
+
+        for (var c = 0; c < global.resources.sponsors.length; c++) {
+
+            var sponsorsCategory = global.resources.sponsors[c];
+
+            for (var i1 = 0; i1 < sponsorsCategory.items.length; i1++) {
+
+                var sponsorsItem = sponsorsCategory.items[i1];
+
+                if (sponsorsItem.name != offerShopInfo.name) {
+                    continue;
+                }
+
+                isSponsorItem = true;
+                break;
+            }
+        }
+
+        if (isSponsorItem && profileObject.sponsors.unlocked.indexOf(offerShopInfo.name) == -1) {
+            elementShopBuyOffer.attrs.error_status = "8";
+            continue;
+        }
+
         profileObject.game_money -= offerShopInfo.game_price;
         profileObject.cry_money -= offerShopInfo.cry_price;
         profileObject.crown_money -= offerShopInfo.crown_price;

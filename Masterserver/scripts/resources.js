@@ -8,6 +8,7 @@ global.resources = {};
 exports.load = function () {
 	//console.log("[ResourcesLoad]:Loading...");
 	loadItems();
+	loadSponsors();
 	loadExpCurveTable();
 	loadDefaultSlots();
 	loadDefaultItems();
@@ -57,18 +58,8 @@ function removeTextFromLtxElements(ltxElementC) {
 	ltxElementC.children = newClildrenElementsArr;
 }
 
-function errorGetChild(fName, fcName, cName) {
-	console.log("[ResourceLoad][" + fName + "]:Failed to get child '" + fcName + "' in '" + cName + "'");
-	throw "";
-}
-
 function errorBadAttr(fName, attrName, eName) {
 	console.log("[ResourceLoad][" + fName + "]:Attribute '" + attrName + "' in '" + eName + "' is bad");
-	throw "";
-}
-
-function errorBadChildElement(fName, cName, eName) {
-	console.log("[ResourceLoad][" + fName + "]:Child '" + cName + "' in '" + eName + "' is have bad child");
 	throw "";
 }
 
@@ -339,6 +330,200 @@ function loadItems() {
 		return boosterInfoObject;
 	}
 
+}
+
+function loadSponsors() {
+
+	console.log("[ResourcesLoad]:Loading Sponsors");
+
+	var sponsorsCategories = [];
+
+	var sponsorsCategoryNames = ["Weapon", "Outfit", "Equipment"];
+
+	for (var c = 0; c < sponsorsCategoryNames.length; c++) {
+
+		var sponsorsCategoryName = sponsorsCategoryNames[c];
+
+		var sponsorsElement;
+
+		var sponsorsPath = "./gamedata/" + global.startupParams.locale + "_" + global.startupParams.ver + "/libs/config/sponsorssystem/sponsors/" + sponsorsCategoryName.toLowerCase() + ".xml";
+
+		try {
+			sponsorsElement = ltx.parse(fs.readFileSync(sponsorsPath));
+		} catch (e) {
+			console.log("[ResourcesLoad][LoadSponsors]:Failed to load configuration file '" + sponsorsPath + "'");
+			console.log(e);
+			throw "";
+		}
+
+		var sponsorsCategory = { stages: [], items: [] };
+
+
+		//Parse stages
+
+		var stagesElements = sponsorsElement.getChildren("stages");
+
+		if (stagesElements.length != 1) {
+			console.log("[ResourcesLoad][LoadSponsors]:Number of 'stages' elements should be '1', but is now '" + stagesElements.length + "', in element 'sponsor_data', in file '" + sponsorsPath + "'");
+			throw "";
+		}
+
+		var stageElements = stagesElements[0].getChildElements();
+
+		if (stageElements.length != 250) {
+			console.log("[ResourcesLoad][LoadSponsors]:Number of elements should be '250', but is now '" + stageElements.length + "', in element 'stages', in element 'sponsor_data', in file '" + sponsorsPath + "'");
+			throw "";
+		}
+
+		var validationOfStageValue = 0;
+
+		for (var s = 0; s < stageElements.length; s++) {
+
+			var stageElement = stageElements[s];
+
+			if (stageElement.name != "stage_" + (s + 1)) {
+				console.log("[ResourcesLoad][LoadSponsors]:Element '" + s + "' should be named '" + "stage_" + (s + 1) + "', but now it is named '" + stageElement.name + "', in element 'stages', in element 'sponsor_data', in file '" + sponsorsPath + "'");
+				throw "";
+			}
+
+			if (!stageElement.attrs.value) {
+				break;
+			}
+
+			var stageValue = Number(stageElement.attrs.value);
+
+			if (Number.isNaN(stageValue) || !Number.isSafeInteger(stageValue) || stageValue < 0 || stageValue > 4294967295 || stageValue <= validationOfStageValue) {
+				console.log("[ResourcesLoad][LoadSponsors]:Attribute 'value' of element 'stage_*' should be an integer and greater than that of the previous element, but now it is '" + stageValue + "', while the previous element is '" + validationOfStageValue + "', in element '" + s + "', in element 'stages', in element 'sponsor_data', in file '" + sponsorsPath + "'");
+				throw "";
+			}
+
+			validationOfStageValue = stageValue;
+
+			sponsorsCategory.stages.push(stageValue);
+		}
+
+
+		//Parse sponsor_unlocks
+
+		var sponsorUnlocksElements = sponsorsElement.getChildren("sponsor_unlocks");
+
+		if (sponsorUnlocksElements.length != 1) {
+			console.log("[ResourcesLoad][LoadSponsors]:Number of 'sponsor_unlocks' elements should be '1', but is now '" + sponsorUnlocksElements.length + "', in element 'sponsor_data', in file '" + sponsorsPath + "'");
+			throw "";
+		}
+
+		var itemElements = sponsorUnlocksElements[0].getChildElements();
+
+		if (itemElements.length != sponsorsCategory.stages.length) {
+			console.log("[ResourcesLoad][LoadSponsors]:Number of elements must be equal to number of stages, but now number of elements is '" + itemElements.length + "' and number of stages is '" + sponsorsCategory.stages.length + "', in element 'sponsor_unlocks', in element 'sponsor_data', in file '" + sponsorsPath + "'");
+			throw "";
+		}
+
+		var validationOfDuplicatedItemNames = [];
+
+		for (var i = 0; i < itemElements.length; i++) {
+
+			var itemElement = itemElements[i];
+
+			if (itemElement.name != "item") {
+				console.log("[ResourcesLoad][LoadSponsors]:Element '" + i + "' should be named 'item', but now it is named '" + itemElement.name + "', in element 'sponsor_unlocks', in element 'sponsor_data', in file '" + sponsorsPath + "'");
+				throw "";
+			}
+
+			if (!itemElement.attrs.name) {
+				console.log("[ResourcesLoad][LoadSponsors]:Attribute 'name' of element 'item' must be set, but it is not set, in element '" + i + "', in element 'sponsor_unlocks', in element 'sponsor_data', in file '" + sponsorsPath + "'");
+				throw "";
+			}
+
+			if (validationOfDuplicatedItemNames.indexOf(itemElement.attrs.name) != -1) {
+				console.log("[ResourcesLoad][LoadSponsors]:Attribute 'name' of element 'item' is duplicated '" + itemElement.attrs.name + "', in element '" + i + "', in element 'sponsor_unlocks', in element 'sponsor_data', in file '" + sponsorsPath + "'");
+				throw "";
+			}
+
+			validationOfDuplicatedItemNames.push(itemElement.attrs.name);
+
+			var baseItemObject;
+
+			for (var i1 = 0; i1 < global.resources.items.data.length; i1++) {
+
+				var localBaseItemObject = global.resources.items.data[i1];
+
+				if (localBaseItemObject.name != itemElement.attrs.name) {
+					continue;
+				}
+
+				baseItemObject = localBaseItemObject;
+				break;
+			}
+
+			if (!baseItemObject) {
+				console.log("[ResourcesLoad][LoadSponsors]:Sponsor item '" + itemElement.attrs.name + "' not found in precached items, in element '" + i + "', in element 'sponsor_unlocks', in element 'sponsor_data', in file '" + sponsorsPath + "'");
+				throw "";
+			}
+
+			baseItemObject.locked = 1;
+
+			if (itemElement.attrs.type && itemElement.attrs.type != "give_permanent") {
+				console.log("[ResourcesLoad][LoadSponsors]:Attribute 'type' of element 'item' must be unset or set to 'give_permanent', but is currently set to '" + itemElement.attrs.type + "', in element '" + i + "', in element 'sponsor_unlocks', in element 'sponsor_data', in file '" + sponsorsPath + "'");
+				throw "";
+			}
+
+			var itemType = 0;
+
+			if (itemElement.attrs.type == "give_permanent") {
+				itemType = 1;
+			}
+
+			var sponsorsItem = { id: baseItemObject.id, name: itemElement.attrs.name, type: itemType, weights: [] };
+
+			var weightElements = itemElement.getChildElements();
+
+			if (weightElements.length != 250) {
+				console.log("[ResourcesLoad][LoadSponsors]:Number of elements should be '250', but is now '" + weightElements.length + "', in element '" + i + "', in element 'sponsor_unlocks', in element 'sponsor_data', in file '" + sponsorsPath + "'");
+				throw "";
+			}
+
+			for (var w = 0; w < weightElements.length; w++) {
+
+				var weightElement = weightElements[w];
+
+				if (weightElement.name != "weight" + (w + 1)) {
+					console.log("[ResourcesLoad][LoadSponsors]:Element '" + w + "' should be named '" + "weight" + (w + 1) + "', but now it is named '" + weightElement.name + "', in element '" + i + "', in element 'sponsor_unlocks', in element 'sponsor_data', in file '" + sponsorsPath + "'");
+					throw "";
+				}
+
+				if (!weightElement.attrs.value) {
+					break;
+				}
+
+				var weightValue = Number(weightElement.attrs.value);
+
+				if (Number.isNaN(weightValue) || !Number.isSafeInteger(weightValue) || weightValue < 1 || weightValue > 4294967295) {
+					console.log("[ResourcesLoad][LoadSponsors]:Attribute 'value' of element 'weight*' must be an integer and greater than 0, but now it is '" + weightValue + "', in element '" + w + "', in element '" + i + "', in element 'sponsor_unlocks', in element 'sponsor_data', in file '" + sponsorsPath + "'");
+					throw "";
+				}
+
+				sponsorsItem.weights.push(weightValue);
+			}
+
+			if (sponsorsItem.weights.length != sponsorsCategory.stages.length) {
+				console.log("[ResourcesLoad][LoadSponsors]:Number of weights for item must be equal to number of stages for category, but now number of weights is '" + sponsorsItem.weights.length + "' and number of stages is '" + sponsorsCategory.stages.length + "', in element '" + i + "', in element 'sponsor_unlocks', in element 'sponsor_data', in file '" + sponsorsPath + "'");
+				throw "";
+			}
+
+			//console.log(sponsorsItem);
+
+			sponsorsCategory.items.push(sponsorsItem);
+		}
+
+		//console.log(sponsorsCategory);
+
+		sponsorsCategories.push(sponsorsCategory);
+	}
+
+	//console.log(sponsorsCategories);
+
+	global.resources.sponsors = sponsorsCategories;
 }
 
 function loadExpCurveTable() {
@@ -707,7 +892,7 @@ function loadRewardsConfiguration() {
 			var numberMultiplier = Number(elementReward.getText());
 
 			//TODO
-			if(numberMultiplier == 0 && elementReward.name == "ClanPointsMultiplier"){
+			if (numberMultiplier == 0 && elementReward.name == "ClanPointsMultiplier") {
 				numberMultiplier = 0.1;
 			}
 
@@ -890,7 +1075,11 @@ function loadQuickplayMaps() {
 		}
 
 		var elementChannel = elementQuickplayMaps.getChildByAttr("type", channelType);
-		if (!elementChannel) errorGetChild("loadQuickplayMaps", "channel", "quickplay");
+
+		if (!elementChannel) {
+			console.log("[ResourceLoad][loadQuickplayMaps]:Failed to get child 'channel' in 'quickplay'");
+			throw "";
+		}
 
 		quickplayMapsObject.autostartMaps = createMapsArr(elementChannel, null, false);
 
@@ -921,7 +1110,7 @@ function loadAchievementsList() {
 
 	var achievementsArr = [];
 	var AchievementDesc = ltx.parse(fs.readFileSync("./gamedata/" + global.startupParams.locale + "_" + global.startupParams.ver + "/libs/config/achievementdesc.xml"));
-	
+
 	var LocalizationObj = {};
 
 	/*
@@ -952,7 +1141,7 @@ function loadAchievementsList() {
 		}
 	}
 	*/
-	
+
 	var achievementsPathsArr = getFiles("./gamedata/" + global.startupParams.locale + "_" + global.startupParams.ver + "/libs/config/achievements");
 
 	for (var i = 0; i < achievementsPathsArr.length; i++) {

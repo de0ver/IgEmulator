@@ -127,5 +127,11 @@
 		"verbal_abuse",
 		"master_does_not_start_room",
 		"other"
-	]
+	],
+	"create_profile": {
+		"game_money": 10000000,
+		"cry_money": 10000000,
+		"crown_money": 10000000,
+		"experience": 0
+	}
 }
