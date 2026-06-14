@@ -19,11 +19,11 @@ Server emulator for older versions of the Warface game, from 04/12/2012 to 06/28
     `docker run -d --name mongodb -p 27017:27017 -v ../MasterServer/MongoDb/db:/data/db -v ../MasterServer/MongoDb/mongod.cfg:/etc/mongod.cfg mongo:4.2`
 
 + Run 
-	- `nodejs --tls-min-v1.0 ../XmppServerTcp/index.js`;
-	- `nodejs ../ComponentWFC/index.js`;
-	- `nodejs ../ComponentConference/index.js`;
-	- `nodejs ../Masterserver/index.js server_id="301" min_rank="26" max_rank="70" channel="pvp_pro" resource="pvp_pro_001" rank_group="all" bootstrap="" ver="" locale="ru" max_users="1000" bootstrap_name=""`;
-	- `nodejs ../Masterserver/index.js server_id="201" min_rank="11" max_rank="25" channel="pvp_skilled" resource="pvp_skilled_001" rank_group="all" bootstrap="" ver="" locale="ru" max_users="1000" bootstrap_name=""`;
+	- `node --tls-min-v1.0 ../XmppServerTcp/index.js`;
+	- `node ../ComponentWFC/index.js`;
+	- `node ../ComponentConference/index.js`;
+	- `node ../Masterserver/index.js server_id="301" min_rank="26" max_rank="70" channel="pvp_pro" resource="pvp_pro_001" rank_group="all" bootstrap="" ver="" locale="ru" max_users="1000" bootstrap_name=""`;
+	- `node ../Masterserver/index.js server_id="201" min_rank="11" max_rank="25" channel="pvp_skilled" resource="pvp_skilled_001" rank_group="all" bootstrap="" ver="" locale="ru" max_users="1000" bootstrap_name=""`;
 
 4. Generating a token
 `http://127.0.0.1:8080/settoken?id=1&token=12345&time=120000`.

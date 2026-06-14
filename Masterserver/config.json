@@ -9,7 +9,8 @@
 	},
 	"dedicated_hosts": {
 		"DESKTOP-5M4DJET": "192.168.1.100",
-		"WIN-84FCDFMO73M": "192.168.1.101"
+		"WIN-84FCDFMO73M": "192.168.1.101",
+		"steamdeck": "127.0.0.1"
 	},
 	"friends_limit": 100,
 	"clan_members_limit": 50,

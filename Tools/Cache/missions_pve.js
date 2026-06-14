@@ -1,6 +1,8 @@
 var ltx = require("ltx");
 var fs = require("fs");
 
+let dir = process.platform == 'win32' ? '.'  : __dirname.replaceAll('/scripts','');
+
 var getFiles = function (dir, files_) {
 
     files_ = files_ || [];
@@ -34,17 +36,17 @@ exports.module = function (callback) {
 
     console.log("[CacheMissionsPvE]:Loading SubMissionConfigs...");
     var generatorSublevelsConfigs = {};
-    var missionsConfigsPaths = getFiles("./gamedata/" + global.startupParams.locale + "_" + global.startupParams.version + "/levels");
+    var missionsConfigsPaths = getFiles(dir + "/gamedata/" + global.startupParams.locale + "_" + global.startupParams.version + "/Levels");
     for (i = 0; i < missionsConfigsPaths.length; i++) {
-        var missionConfigPath = missionsConfigsPaths[i].toLowerCase();
-        if (missionConfigPath.split("/")[missionConfigPath.split("/").length - 1] == "submissionconfig.xml") {
-            generatorSublevelsConfigs[missionConfigPath.split("/levels/")[1].split("/submissionconfig.xml")[0]] = ltx.parse(fs.readFileSync(missionConfigPath))
+        var missionConfigPath = missionsConfigsPaths[i];
+        if (missionConfigPath.split("/")[missionConfigPath.split("/").length - 1] == "SubMissionConfig.xml") {
+            generatorSublevelsConfigs[missionConfigPath.split("/Levels/")[1].split("/SubMissionConfig.xml")[0]] = ltx.parse(fs.readFileSync(missionConfigPath))
         }
     }
 
     var generatorMissionGraphs = {};
 
-    var missions_graphs_paths = getFiles("./gamedata/" + global.startupParams.locale + "_" + global.startupParams.version + "/libs/missiongraphs");
+    var missions_graphs_paths = getFiles(dir + "/gamedata/" + global.startupParams.locale + "_" + global.startupParams.version + "/libs/MissionGraphs");
     for (i = 0; i < missions_graphs_paths.length; i++) {
         var parsedMg = ltx.parse(fs.readFileSync(missions_graphs_paths[i]));
         generatorMissionGraphs[parsedMg.attrs.name.toLowerCase()] = parsedMg;
@@ -52,10 +54,10 @@ exports.module = function (callback) {
     //console.log(generatorMissionGraphs);
     //Конфиг генератора миссий
     console.log("[CacheMissionsPvE]:Loading MissionGenerationConfiguration...");
-    var generatorMissionGenerationConfiguration = ltx.parse(fs.readFileSync("./gamedata/" + global.startupParams.locale + "_" + global.startupParams.version + "/libs/config/masterserver/mission_generation_configuration.xml", "utf8"));
+    var generatorMissionGenerationConfiguration = ltx.parse(fs.readFileSync(dir + "/gamedata/" + global.startupParams.locale + "_" + global.startupParams.version + "/libs/config/masterserver/mission_generation_configuration.xml", "utf8"));
 
     console.log("[CacheMissionsPvE]:Loading SecondaryObjectivesDesc...");
-    global.SecondaryObjectivesDesc = ltx.parse(fs.readFileSync("./gamedata/" + global.startupParams.locale + "_" + global.startupParams.version + "/libs/config/secondaryobjectivesdesc.xml", "utf8"));
+    global.SecondaryObjectivesDesc = ltx.parse(fs.readFileSync(dir + "/gamedata/" + global.startupParams.locale + "_" + global.startupParams.version + "/libs/config/SecondaryObjectivesDesc.xml", "utf8"));
 
     function getRandomInt(min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
